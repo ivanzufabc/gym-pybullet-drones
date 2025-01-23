@@ -63,7 +63,8 @@ class GPS_distance(BaseRLAviary):
                          gui=gui,
                          record=record,
                          obs=obs,
-                         act=act
+                         act=act,
+                         vision_attributes=True
                          )
     
     ################################################################################
