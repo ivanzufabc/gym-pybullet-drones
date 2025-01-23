@@ -18,7 +18,7 @@ class GPS_distance(BaseRLAviary):
                  ctrl_freq: int = 30,
                  gui=False,
                  record=False,
-                 obs: ObservationType=ObservationType.KIN,
+                 obs: ObservationType=ObservationType.RGB,
                  act: ActionType=ActionType.RPM
                  ):
         """Initialization of a single agent RL environment.
@@ -63,8 +63,7 @@ class GPS_distance(BaseRLAviary):
                          gui=gui,
                          record=record,
                          obs=obs,
-                         act=act,
-                         vision_attributes=True
+                         act=act
                          )
     
     ################################################################################
