@@ -65,6 +65,7 @@ class GPS_distance(BaseRLAviary):
                          obs=obs,
                          act=act
                          )
+        self.IMG_FRAME_PER_SEC = 30
     
     ################################################################################
 
