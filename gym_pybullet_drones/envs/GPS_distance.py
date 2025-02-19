@@ -1,5 +1,6 @@
 import numpy as np
 import pybullet as p
+from random import Random
 from gymnasium import spaces
 from gym_pybullet_drones.envs.BaseRLAviary import BaseRLAviary
 from gym_pybullet_drones.utils.enums import DroneModel, Physics, ActionType, ObservationType, ImageType
@@ -10,6 +11,7 @@ class GPS_distance(BaseRLAviary):
     ################################################################################
     
     def __init__(self,
+                 rng:Random,
                  drone_model: DroneModel=DroneModel.CF2X,
                  initial_xyzs=None,
                  initial_rpys=None,
@@ -19,7 +21,12 @@ class GPS_distance(BaseRLAviary):
                  gui=False,
                  record=False,
                  obs: ObservationType=ObservationType.RGB,
-                 act: ActionType=ActionType.RPM
+                 act: ActionType=ActionType.RPM,
+                 max_dist:float = 20.,
+                 min_dist:float = -20.,
+                 min_height:float = 2.,
+                 max_height:float = 30.,
+                 min_speed:float = 1.
                  ):
         """Initialization of a single agent RL environment.
 
@@ -49,8 +56,12 @@ class GPS_distance(BaseRLAviary):
             The type of action space (1 or 3D; RPMS, thurst and torques, or waypoint with PID control)
 
         """
-        self.TARGET_POS = np.array([0,0,1])
-        self.EPISODE_LEN_SEC = 8
+        rng_self = Random(rng.random())
+        taget_pos = [rng_self.uniform(min_dist, max_dist),
+                     rng_self.uniform(min_dist, max_dist),
+                     rng_self.uniform(min_height, max_height)]
+        self.TARGET_POS = np.array(taget_pos)
+        self.EPISODE_LEN_SEC = np.linalg.norm(self.TARGET_POS) / min_speed
         self.HEIGHT_SENSOR_RANGE = 50.
         self.USE_LIDAR = False
         super().__init__(drone_model=drone_model,
@@ -126,8 +137,9 @@ class GPS_distance(BaseRLAviary):
 
         """
         state = self._getDroneStateVector(0)
-        ret = max(0, 2 - np.linalg.norm(self.TARGET_POS-state[0:3])**4)
-        return ret
+        dist = self.TARGET_POS - state[0:3]
+        aux = dist @ dist
+        return max(0, 2 - (aux * aux))
 
     ################################################################################
     
@@ -140,8 +152,10 @@ class GPS_distance(BaseRLAviary):
             Whether the current episode is done.
 
         """
+        threshold = .0001
         state = self._getDroneStateVector(0)
-        if np.linalg.norm(self.TARGET_POS-state[0:3]) < .0001:
+        dist = self.TARGET_POS - state[0:3]
+        if dist @ dist < threshold*threshold:
             return True
         else:
             return False
