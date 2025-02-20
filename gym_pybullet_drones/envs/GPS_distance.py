@@ -138,8 +138,7 @@ class GPS_distance(BaseRLAviary):
         """
         state = self._getDroneStateVector(0)
         dist = self.TARGET_POS - state[0:3]
-        aux = dist @ dist
-        return max(0, 2 - (aux * aux))
+        return (1. / (dist @ dist + 0.5))
 
     ################################################################################
     
