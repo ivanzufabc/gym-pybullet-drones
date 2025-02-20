@@ -171,7 +171,7 @@ class GPS_distance(BaseRLAviary):
 
         """
         state = self._getDroneStateVector(0)
-        if (abs(state[0]) > 1.5 or abs(state[1]) > 1.5 or state[2] > 2.0 # Truncate when the drone is too far away
+        if (state[0:3] @ state[0:3] > (self.TARGET_POS @ self.TARGET_POS) * 2 # Truncate when the drone is too far away
              or abs(state[7]) > .4 or abs(state[8]) > .4 # Truncate when the drone is too tilted
         ):
             return True
