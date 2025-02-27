@@ -13,7 +13,7 @@ class GPS_distance(BaseRLAviary):
     def __init__(self,
                  rng:Random,
                  drone_model: DroneModel=DroneModel.CF2X,
-                 initial_xyzs=None,
+                 initial_xyzs=np.array([[0.0, 0.0, 5.0]]),
                  initial_rpys=None,
                  physics: Physics=Physics.PYB,
                  pyb_freq: int = 240,
