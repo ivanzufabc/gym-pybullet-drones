@@ -61,6 +61,7 @@ class GPS_distance(BaseRLAviary):
                      rng_self.uniform(min_dist, max_dist),
                      rng_self.uniform(min_height, max_height)]
         self.TARGET_POS = np.array(taget_pos)
+        self._TARGET_POS2 = self.TARGET_POS @ self.TARGET_POS
         self.EPISODE_LEN_SEC = np.linalg.norm(self.TARGET_POS) / min_speed
         self.HEIGHT_SENSOR_RANGE = 50.
         self.USE_LIDAR = False
@@ -136,9 +137,10 @@ class GPS_distance(BaseRLAviary):
             The reward.
 
         """
-        state = self._getDroneStateVector(0)
-        dist = self.TARGET_POS - state[0:3]
-        return (1. / (dist @ dist + 0.5))
+        dist = self.TARGET_POS - self.pos[0,:]
+        d2 = dist @ dist / self._TARGET_POS2
+        return (6 - 7*d2 + d2 * d2) / (6 - 3*d2)
+        # return (1. / (dist @ dist + 0.5))
 
     ################################################################################
     
