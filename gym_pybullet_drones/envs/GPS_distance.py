@@ -139,6 +139,8 @@ class GPS_distance(BaseRLAviary):
         """
         dist = self.TARGET_POS - self.pos[0,:]
         d2 = dist @ dist / self._TARGET_POS2
+        if d2 > 1:
+            return 0.
         return (6 - 7*d2 + d2 * d2) / (6 - 3*d2)
         # return (1. / (dist @ dist + 0.5))
 
@@ -154,8 +156,7 @@ class GPS_distance(BaseRLAviary):
 
         """
         threshold = .0001
-        state = self._getDroneStateVector(0)
-        dist = self.TARGET_POS - state[0:3]
+        dist = self.TARGET_POS - self.pos[0,:]
         if dist @ dist < threshold*threshold:
             return True
         else:
@@ -172,10 +173,9 @@ class GPS_distance(BaseRLAviary):
             Whether the current episode timed out.
 
         """
-        state = self._getDroneStateVector(0)
-        dist = self.TARGET_POS - state[0:3]
-        if (dist @ dist > (self.TARGET_POS @ self.TARGET_POS) * 2 # Truncate when the drone is too far away
-             or abs(state[7]) > .4 or abs(state[8]) > .4 # Truncate when the drone is too tilted
+        dist = self.TARGET_POS - self.pos[0,:]
+        if (dist @ dist > self._TARGET_POS2 * 2 # Truncate when the drone is too far away
+             or abs(self.rpy[0,0]) > .4 or abs(self.rpy[0,1]) > .4 # Truncate when the drone is too tilted
         ):
             return True
         if self.step_counter/self.PYB_FREQ > self.EPISODE_LEN_SEC:
