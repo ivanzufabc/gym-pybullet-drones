@@ -142,7 +142,7 @@ class GPS_distance(BaseRLAviary):
         if d2 > 1:
             return 0.
         reward_dist = (6 - 7*d2 + d2 * d2) / (6 - 3*d2)
-        reward_speed = 1. / (1. + self.vel @ self.vel + d2)
+        reward_speed = 1. / (1. + self.vel[0,:] @ self.vel[0,:] + d2)
         reward_time = (self.EPISODE_LEN_SEC - self.step_counter/self.PYB_FREQ) / (self.EPISODE_LEN_SEC - self.MIN_LEN_SEC)
         return reward_dist * 50 + reward_speed * 30 + reward_time * 20
         # return (1. / (dist @ dist + 0.5))
