@@ -288,6 +288,7 @@ class BaseAviary(gym.Env):
             in each subclass for its format.
 
         """
+        p.changeDynamics(self.DRONE_IDS[0], -1, linearDamping=0, physicsClientId=self.CLIENT)
         #### Save PNG video frames if RECORD=True and GUI=False ####
         if self.RECORD and not self.GUI and self.step_counter%self.CAPTURE_FREQ == 0:
             [w, h, rgb, dep, seg] = p.getCameraImage(width=self.VID_WIDTH,

@@ -15,7 +15,7 @@ class GPS_distance(BaseRLAviary):
                  drone_model: DroneModel=DroneModel.CF2X,
                  initial_xyzs=np.array([[0.0, 0.0, 5.0]]),
                  initial_rpys=None,
-                 physics: Physics=Physics.PYB,
+                 physics: Physics=Physics.PYB_DRAG,
                  pyb_freq: int = 240,
                  ctrl_freq: int = 30,
                  gui=False,
