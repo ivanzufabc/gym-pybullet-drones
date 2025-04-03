@@ -26,7 +26,8 @@ class GPS_distance(BaseRLAviary):
                  min_dist:float = -20.,
                  min_height:float = 2.,
                  max_height:float = 30.,
-                 min_vel:float = 1.
+                 min_vel:float = 1.,
+                 debug_function=lambda x: x
                  ):
         """Initialization of a single agent RL environment.
 
@@ -65,6 +66,7 @@ class GPS_distance(BaseRLAviary):
         self.MIN_LEN_SEC = np.linalg.norm(self.TARGET_POS) / 20.
         self.HEIGHT_SENSOR_RANGE = 50.
         self.USE_LIDAR = False
+        self.DEBUG_FUNCTION = debug_function
         super().__init__(drone_model=drone_model,
                          num_drones=1,
                          initial_xyzs=initial_xyzs,
@@ -216,7 +218,8 @@ class GPS_distance(BaseRLAviary):
             "reward": [self.reward_dist, self.reward_vel, self.reward_time],
             "target position": np.array(self.TARGET_POS[0,:]),
             "position": np.array(self.pos[0,:]),
-            "velocity": np.array(self.vel[0,:])
+            "velocity": np.array(self.vel[0,:]),
+            "debug": self.DEBUG_FUNCTION(self)
             }
     
     ################################################################################
