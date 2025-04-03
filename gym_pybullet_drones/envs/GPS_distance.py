@@ -91,6 +91,10 @@ class GPS_distance(BaseRLAviary):
         """
         self.acc = np.zeros((self.NUM_DRONES, 3))
         self.rmat = np.zeros((self.NUM_DRONES, 3, 3))
+
+        self.reward_dist = 0.
+        self.reward_vel = 0.
+        self.reward_time = 0.
         super()._housekeeping()
 
     
