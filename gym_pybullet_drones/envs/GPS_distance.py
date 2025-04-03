@@ -220,7 +220,7 @@ class GPS_distance(BaseRLAviary):
         """
         return {
             "reward": [self.reward_dist, self.reward_vel, self.reward_time],
-            "target position": np.array(self.TARGET_POS[0,:]),
+            "target position": np.array(self.TARGET_POS),
             "position": np.array(self.pos[0,:]),
             "velocity": np.array(self.vel[0,:]),
             "debug": self.DEBUG_FUNCTION(self)
