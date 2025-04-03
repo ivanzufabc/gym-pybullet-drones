@@ -375,8 +375,8 @@ class BaseAviary(gym.Env):
         self._updateAndStoreKinematicInformation()
         #### Prepare the return values #############################
         obs = self._computeObs()
-        reward = self._computeReward()
         terminated = self._computeTerminated()
+        reward = self._computeReward() if terminated else 0.
         truncated = self._computeTruncated()
         info = self._computeInfo()
         #### Advance the step counter ##############################
