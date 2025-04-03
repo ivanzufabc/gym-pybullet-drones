@@ -162,7 +162,7 @@ class GPS_distance(BaseRLAviary):
             t2 = time * time
             self.reward_time = GPS_distance._computeBaseReward(t2) * 20
         else:
-            self.reward_time = 0
+            self.reward_time = 0.
 
         return self.reward_dist + self.reward_vel + self.reward_time 
 
