@@ -26,7 +26,7 @@ class GPS_distance(BaseRLAviary):
                  min_dist:float = -20.,
                  min_height:float = 2.,
                  max_height:float = 30.,
-                 min_speed:float = 1.
+                 min_vel:float = 1.
                  ):
         """Initialization of a single agent RL environment.
 
@@ -61,7 +61,7 @@ class GPS_distance(BaseRLAviary):
                      rng_self.uniform(min_dist, max_dist),
                      rng_self.uniform(min_height, max_height)]
         self.TARGET_POS = np.array(taget_pos)
-        self.EPISODE_LEN_SEC = np.linalg.norm(self.TARGET_POS) / min_speed
+        self.EPISODE_LEN_SEC = np.linalg.norm(self.TARGET_POS) / min_vel
         self.MIN_LEN_SEC = np.linalg.norm(self.TARGET_POS) / 20.
         self.HEIGHT_SENSOR_RANGE = 50.
         self.USE_LIDAR = False
@@ -142,9 +142,12 @@ class GPS_distance(BaseRLAviary):
         if d2 > 1:
             return 0.
         reward_dist = (6 - 7*d2 + d2 * d2) / (6 - 3*d2)
-        reward_speed = 1. / (1. + self.vel[0,:] @ self.vel[0,:] + d2)
+        reward_vel = 1. / (1. + self.vel[0,:] @ self.vel[0,:] + d2)
         reward_time = (self.EPISODE_LEN_SEC - self.step_counter/self.PYB_FREQ) / (self.EPISODE_LEN_SEC - self.MIN_LEN_SEC)
-        return reward_dist * 50 + reward_speed * 30 + reward_time * 20
+        self.reward_dist = reward_dist * 50
+        self.reward_vel = reward_vel * 30
+        self.reward_time = reward_time # 20
+        return self.reward_dist + self.reward_vel + self.reward_time 
         # return (1. / (dist @ dist + 0.5))
 
     ################################################################################
@@ -199,7 +202,12 @@ class GPS_distance(BaseRLAviary):
             Dummy value.
 
         """
-        return {"answer": 42} #### Calculated by the Deep Thought supercomputer in 7.5M years
+        return {
+            "reward": [self.reward_dist, self.reward_vel, self.reward_time],
+            "target position": np.array(self.TARGET_POS[0,:]),
+            "position": np.array(self.pos[0,:]),
+            "velocity": np.array(self.vel[0,:])
+            }
     
     ################################################################################
 
