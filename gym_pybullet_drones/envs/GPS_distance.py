@@ -128,6 +128,11 @@ class GPS_distance(BaseRLAviary):
 
     ################################################################################
     
+    def _computeBaseReward(normalized_sqr_value):
+        return (6 - 7*normalized_sqr_value + normalized_sqr_value * normalized_sqr_value) / (6 - 3*normalized_sqr_value)
+
+    ################################################################################
+    
     def _computeReward(self):
         """Computes the current reward value.
 
@@ -141,14 +146,19 @@ class GPS_distance(BaseRLAviary):
         d2 = (dist @ dist) / (self.TARGET_POS @ self.TARGET_POS)
         if d2 > 1:
             return 0.
-        reward_dist = (6 - 7*d2 + d2 * d2) / (6 - 3*d2)
-        reward_vel = 1. / (1. + self.vel[0,:] @ self.vel[0,:] + d2)
-        reward_time = (self.EPISODE_LEN_SEC - self.step_counter/self.PYB_FREQ) / (self.EPISODE_LEN_SEC - self.MIN_LEN_SEC)
-        self.reward_dist = reward_dist * 50
-        self.reward_vel = reward_vel * 30
-        self.reward_time = reward_time # 20
+        self.reward_dist = GPS_distance._computeBaseReward(d2) * 50
+
+        v2 = (self.vel[0,:] @ self.vel[0,:]) / 400.
+        self.reward_vel = GPS_distance._computeBaseReward(v2) * 30
+
+        time = (self.EPISODE_LEN_SEC - self.step_counter/self.PYB_FREQ) / (self.EPISODE_LEN_SEC - self.MIN_LEN_SEC)
+        if time <= 1:
+            t2 = time * time
+            self.reward_time = GPS_distance._computeBaseReward(t2) * 20
+        else:
+            self.reward_time = 0
+
         return self.reward_dist + self.reward_vel + self.reward_time 
-        # return (1. / (dist @ dist + 0.5))
 
     ################################################################################
     
