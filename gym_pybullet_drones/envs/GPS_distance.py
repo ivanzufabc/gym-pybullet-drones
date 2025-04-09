@@ -62,7 +62,7 @@ class GPS_distance(BaseRLAviary):
                      rng_self.uniform(min_dist, max_dist),
                      rng_self.uniform(min_height, max_height)]
         self.TARGET_POS = np.array(taget_pos)
-        dist = self.TARGET_POS - initial_xyzs
+        dist = self.TARGET_POS - initial_xyzs[0,:]
         self.DISTANCE_SQR = dist @ dist
         self.EPISODE_LEN_SEC = np.linalg.norm(self.TARGET_POS) / min_vel
         self.MIN_LEN_SEC = np.linalg.norm(self.TARGET_POS) / 20.
