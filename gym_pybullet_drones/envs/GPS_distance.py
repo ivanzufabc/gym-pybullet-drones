@@ -62,6 +62,7 @@ class GPS_distance(BaseRLAviary):
                      rng_self.uniform(min_dist, max_dist),
                      rng_self.uniform(min_height, max_height)]
         self.TARGET_POS = np.array(taget_pos)
+        self.THRESHOLD = .0001
         dist = self.TARGET_POS - initial_xyzs[0,:]
         self.DISTANCE_SQR = dist @ dist
         self.EPISODE_LEN_SEC = np.linalg.norm(self.TARGET_POS) / min_vel
@@ -166,7 +167,7 @@ class GPS_distance(BaseRLAviary):
             self.reward_vel = 0.
 
         time = (self.EPISODE_LEN_SEC - self.step_counter/self.PYB_FREQ) / (self.EPISODE_LEN_SEC - self.MIN_LEN_SEC)
-        if time <= 1:
+        if time <= 1 and self._computeTerminated():
             t2 = time * time
             self.reward_time = GPS_distance._computeBaseReward(t2) * 20
         else:
@@ -185,9 +186,8 @@ class GPS_distance(BaseRLAviary):
             Whether the current episode is done.
 
         """
-        threshold = .0001
         dist = self.TARGET_POS - self.pos[0,:]
-        if dist @ dist < threshold*threshold:
+        if dist @ dist < self.THRESHOLD*self.THRESHOLD:
             return True
         else:
             return False
