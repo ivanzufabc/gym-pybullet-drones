@@ -62,6 +62,8 @@ class GPS_distance(BaseRLAviary):
                      rng_self.uniform(min_dist, max_dist),
                      rng_self.uniform(min_height, max_height)]
         self.TARGET_POS = np.array(taget_pos)
+        dist = self.TARGET_POS - initial_xyzs
+        self.DISTANCE_SQR = dist @ dist
         self.EPISODE_LEN_SEC = np.linalg.norm(self.TARGET_POS) / min_vel
         self.MIN_LEN_SEC = np.linalg.norm(self.TARGET_POS) / 20.
         self.HEIGHT_SENSOR_RANGE = 50.
@@ -149,7 +151,7 @@ class GPS_distance(BaseRLAviary):
 
         """
         dist = self.TARGET_POS - self.pos[0,:]
-        d2 = (dist @ dist) / (self.TARGET_POS @ self.TARGET_POS)
+        d2 = (dist @ dist) / self.DISTANCE_SQR
         if d2 > 1:
             self.reward_dist = 0.
             self.reward_vel = 0.
@@ -202,7 +204,7 @@ class GPS_distance(BaseRLAviary):
 
         """
         dist = self.TARGET_POS - self.pos[0,:]
-        if (dist @ dist > (self.TARGET_POS @ self.TARGET_POS) * 2 # Truncate when the drone is too far away
+        if (dist @ dist > self.DISTANCE_SQR * 2 # Truncate when the drone is too far away
              or abs(self.rpy[0,0]) > .4 or abs(self.rpy[0,1]) > .4 # Truncate when the drone is too tilted
         ):
             return True
