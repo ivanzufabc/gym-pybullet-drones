@@ -11,7 +11,7 @@ class GPS_distance(BaseRLAviary):
     ################################################################################
     
     def __init__(self,
-                 rng:Random,
+                 rng:float,
                  drone_model: DroneModel=DroneModel.CF2X,
                  initial_xyzs=np.array([[0.0, 0.0, 5.0]]),
                  initial_rpys=None,
@@ -57,7 +57,7 @@ class GPS_distance(BaseRLAviary):
             The type of action space (1 or 3D; RPMS, thurst and torques, or waypoint with PID control)
 
         """
-        rng_self = Random(rng.random())
+        rng_self = Random(rng)
         taget_pos = [rng_self.uniform(min_dist, max_dist),
                      rng_self.uniform(min_dist, max_dist),
                      rng_self.uniform(min_height, max_height)]
