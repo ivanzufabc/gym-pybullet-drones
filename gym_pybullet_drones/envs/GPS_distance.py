@@ -1,6 +1,7 @@
 import numpy as np
 import pybullet as p
 from random import Random
+from math import cos, sin
 from gymnasium import spaces
 from gym_pybullet_drones.envs.BaseRLAviary import BaseRLAviary
 from gym_pybullet_drones.utils.enums import DroneModel, Physics, ActionType, ObservationType, ImageType
@@ -23,7 +24,7 @@ class GPS_distance(BaseRLAviary):
                  obs: ObservationType=ObservationType.RGB,
                  act: ActionType=ActionType.RPM,
                  max_dist:float = 20.,
-                 min_dist:float = -20.,
+                 min_dist:float = 10.,
                  min_height:float = 2.,
                  max_height:float = 30.,
                  min_vel:float = 1.,
@@ -57,12 +58,12 @@ class GPS_distance(BaseRLAviary):
             The type of action space (1 or 3D; RPMS, thurst and torques, or waypoint with PID control)
 
         """
-        rng_self = Random(rng)
-        taget_pos = [rng_self.uniform(min_dist, max_dist),
-                     rng_self.uniform(min_dist, max_dist),
-                     rng_self.uniform(min_height, max_height)]
-        self.TARGET_POS = np.array(taget_pos)
         self.THRESHOLD = .0001
+        rng_self = Random(rng)
+        radius = rng_self.uniform(min_dist, max_dist)
+        angle = rng_self.uniform(0, 2*np.pi)
+        taget_pos = [radius * sin(angle), radius * cos(angle), rng_self.uniform(min_height, max_height)]
+        self.TARGET_POS = np.array(taget_pos)
         dist = self.TARGET_POS - initial_xyzs[0,:]
         self.DISTANCE_SQR = dist @ dist
         self.EPISODE_LEN_SEC = np.linalg.norm(self.TARGET_POS) / min_vel
