@@ -58,7 +58,8 @@ class GPS_distance(BaseRLAviary):
             The type of action space (1 or 3D; RPMS, thurst and torques, or waypoint with PID control)
 
         """
-        self.THRESHOLD = .0001
+        self.THRESHOLD = .1
+        self.THRESHOLD_SQ = self.THRESHOLD * self.THRESHOLD
         rng_self = Random(rng)
         radius = rng_self.uniform(min_dist, max_dist)
         angle = rng_self.uniform(0, 2*np.pi)
@@ -139,6 +140,7 @@ class GPS_distance(BaseRLAviary):
     ################################################################################
     
     def _computeBaseReward(normalized_sqr_value):
+        return 1. - normalized_sqr_value
         return (6 - 7*normalized_sqr_value + normalized_sqr_value * normalized_sqr_value) / (6 - 3*normalized_sqr_value)
 
     ################################################################################
@@ -152,27 +154,27 @@ class GPS_distance(BaseRLAviary):
             The reward.
 
         """
+        self.reward_dist = 0.
+        self.reward_vel = 0.
+        self.reward_time = 0.
         dist = self.TARGET_POS - self.pos[0,:]
-        d2 = (dist @ dist) / self.DISTANCE_SQR
-        if d2 > 1:
-            self.reward_dist = 0.
-            self.reward_vel = 0.
-            self.reward_time = 0.
+        d2 = dist @ dist
+        d2_norm = d2 / self.DISTANCE_SQR
+        if d2_norm > 1:
             return 0.
-        self.reward_dist = GPS_distance._computeBaseReward(d2) * 50
+        self.reward_dist = GPS_distance._computeBaseReward(d2_norm) * 50
 
-        if d2 < 0.45:
-            v2 = (self.vel[0,:] @ self.vel[0,:]) / 400.
-            self.reward_vel = GPS_distance._computeBaseReward(1. - v2) * 30
-        else:
-            self.reward_vel = 0.
+        if not d2 < self.THRESHOLD_SQ:
+            return self.reward_dist
+        v2 = self.vel[0,:] @ self.vel[0,:]
+        v2_norm = v2 / 400.
+        self.reward_vel = GPS_distance._computeBaseReward(1. - v2_norm) * 30
 
+        if not v2 < self.THRESHOLD_SQ:
+            return self.reward_dist + self.reward_vel
         time = (self.EPISODE_LEN_SEC - self.step_counter/self.PYB_FREQ) / (self.EPISODE_LEN_SEC - self.MIN_LEN_SEC)
-        if time <= 1 and self._computeTerminated():
-            t2 = time * time
-            self.reward_time = GPS_distance._computeBaseReward(t2) * 20
-        else:
-            self.reward_time = 0.
+        if time <= 1:
+            self.reward_time = GPS_distance._computeBaseReward(time * time) * 20
 
         return self.reward_dist + self.reward_vel + self.reward_time 
 
@@ -188,7 +190,7 @@ class GPS_distance(BaseRLAviary):
 
         """
         dist = self.TARGET_POS - self.pos[0,:]
-        if dist @ dist < self.THRESHOLD*self.THRESHOLD:
+        if dist @ dist < self.THRESHOLD_SQ and self.vel[0,:] @ self.vel[0,:] < self.THRESHOLD_SQ:
             return True
         else:
             return False
