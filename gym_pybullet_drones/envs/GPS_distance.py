@@ -168,11 +168,11 @@ class GPS_distance(BaseRLAviary):
             return self.reward_dist
         v2 = self.vel[0,:] @ self.vel[0,:]
         v2_norm = v2 / 400.
-        self.reward_vel = GPS_distance._computeBaseReward(1. - v2_norm) * 30
+        self.reward_vel = GPS_distance._computeBaseReward(v2_norm) * 30
 
         if not v2 < self.THRESHOLD_SQ:
             return self.reward_dist + self.reward_vel
-        time = (self.EPISODE_LEN_SEC - self.step_counter/self.PYB_FREQ) / (self.EPISODE_LEN_SEC - self.MIN_LEN_SEC)
+        time = (self.step_counter/self.PYB_FREQ - self.MIN_LEN_SEC) / (self.EPISODE_LEN_SEC - self.MIN_LEN_SEC)
         if time <= 1:
             self.reward_time = GPS_distance._computeBaseReward(time * time) * 20
 
