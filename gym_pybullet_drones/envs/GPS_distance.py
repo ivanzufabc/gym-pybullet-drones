@@ -58,7 +58,7 @@ class GPS_distance(BaseRLAviary):
             The type of action space (1 or 3D; RPMS, thurst and torques, or waypoint with PID control)
 
         """
-        self.THRESHOLD = .1
+        self.THRESHOLD = .5
         self.THRESHOLD_SQ = self.THRESHOLD * self.THRESHOLD
         rng_self = Random(rng)
         radius = rng_self.uniform(min_dist, max_dist)
@@ -96,6 +96,9 @@ class GPS_distance(BaseRLAviary):
         """
         self.acc = np.zeros((self.NUM_DRONES, 3))
         self.rmat = np.zeros((self.NUM_DRONES, 3, 3))
+
+        self.terminated = False
+        self.truncated = False
 
         self.reward_dist = 0.
         self.reward_vel = 0.
@@ -154,6 +157,8 @@ class GPS_distance(BaseRLAviary):
             The reward.
 
         """
+        if not (self.terminated or self.truncated):
+            return 0.
         self.reward_dist = 0.
         self.reward_vel = 0.
         self.reward_time = 0.
@@ -164,13 +169,13 @@ class GPS_distance(BaseRLAviary):
             return 0.
         self.reward_dist = GPS_distance._computeBaseReward(d2_norm) * 50
 
-        if not d2 < self.THRESHOLD_SQ:
+        if not d2 < self.THRESHOLD_SQ * 2:
             return self.reward_dist
         v2 = self.vel[0,:] @ self.vel[0,:]
         v2_norm = v2 / 400.
         self.reward_vel = GPS_distance._computeBaseReward(v2_norm) * 30
 
-        if not v2 < self.THRESHOLD_SQ:
+        if not v2 < self.THRESHOLD_SQ * 4:
             return self.reward_dist + self.reward_vel
         time = (self.step_counter/self.PYB_FREQ - self.MIN_LEN_SEC) / (self.EPISODE_LEN_SEC - self.MIN_LEN_SEC)
         if time <= 1:
@@ -190,7 +195,8 @@ class GPS_distance(BaseRLAviary):
 
         """
         dist = self.TARGET_POS - self.pos[0,:]
-        if dist @ dist < self.THRESHOLD_SQ and self.vel[0,:] @ self.vel[0,:] < self.THRESHOLD_SQ:
+        if dist @ dist < self.THRESHOLD_SQ:
+            self.terminated = True
             return True
         else:
             return False
@@ -210,8 +216,10 @@ class GPS_distance(BaseRLAviary):
         if (dist @ dist > self.DISTANCE_SQR * 2 # Truncate when the drone is too far away
              or abs(self.rpy[0,0]) > .4 or abs(self.rpy[0,1]) > .4 # Truncate when the drone is too tilted
         ):
+            self.truncated = True
             return True
         if self.step_counter/self.PYB_FREQ > self.EPISODE_LEN_SEC:
+            self.truncated = True
             return True
         else:
             return False
