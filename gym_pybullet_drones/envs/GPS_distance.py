@@ -63,8 +63,8 @@ class GPS_distance(BaseRLAviary):
         rng_self = Random(rng)
         radius = rng_self.uniform(min_dist, max_dist)
         angle = rng_self.uniform(0, 2*np.pi)
-        taget_pos = [radius * sin(angle), radius * cos(angle), rng_self.uniform(min_height, max_height)]
-        self.TARGET_POS = np.array(taget_pos)
+        target_pos = [radius * sin(angle), radius * cos(angle), rng_self.uniform(min_height, max_height)]
+        self.TARGET_POS = np.array(target_pos)
         dist = self.TARGET_POS - initial_xyzs[0,:]
         self.DISTANCE_SQR = dist @ dist
         self.EPISODE_LEN_SEC = np.linalg.norm(self.TARGET_POS) / min_vel
@@ -84,6 +84,13 @@ class GPS_distance(BaseRLAviary):
                          obs=obs,
                          act=act
                         )
+        if self.GUI:
+            p.resetDebugVisualizerCamera(cameraDistance=np.sqrt(self.DISTANCE_SQR)+3.,
+                                         cameraYaw=360.*angle/(2*np.pi),
+                                         cameraPitch=np.atan(dist[2]/np.linalg.norm(dist[0:2])),
+                                         cameraTargetPosition=initial_xyzs[0,:].tolist(),
+                                         physicsClientId=self.CLIENT
+                                         )
     
     ################################################################################
 
